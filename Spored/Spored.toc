@@ -1,0 +1,4 @@
+## Interface: 50400
+## Title: Spored
+## Notes: Detects use of Sinister Spores
+Spored.lua
