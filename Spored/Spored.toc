@@ -1,4 +1,7 @@
-## Interface: 50400
+## Interface: 60100
 ## Title: Spored
-## Notes: Detects use of Sinister Spores
+## Version: 1.0.0
+## Author: Sorny
+## DefaultState: Enabled
+## Notes: Detects use of Sinister Spores and other scummy items
 Spored.lua
