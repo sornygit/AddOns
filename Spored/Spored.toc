@@ -1,7 +1,8 @@
 ## Interface: 60100
 ## Title: Spored
-## Version: 1.0.0
+## Version: 1.1.0
 ## Author: Sorny
 ## DefaultState: Enabled
 ## Notes: Detects use of Sinister Spores and other scummy items
+## SavedVariables: spored_output_conf
 Spored.lua

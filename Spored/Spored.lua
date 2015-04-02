@@ -1,12 +1,26 @@
 local text_color = "|cffafdfd0";
 local debugFlag = false;
 local enabled = true;
-local c_output = "SOUND";
+local spored_output = "SOUND";
+
+-- Addon setup
+SLASH_SPORED1 = '/spored'
+
+local function slashUsage()
+	print("SPORED. Written by Sorny of Defias Brotherhood.");
+	print("Detects Sinister Spores, Glitter bomb, Skyterror and Aviana's Feather.");
+	print("Syntax:");
+	print("/spored output <channel>");
+	print("channel = SAY, PARTY, RAID, RAID_WARNING, INSTANCE_CHAT, SOUND (default), or CHAT.");
+	print("/spored enable <true or false>");
+	print("false means addon is disabled, true enabled.");
+end
 
 -- Frame Creation & Event Registration
 local EventFrame = CreateFrame("Frame")
 EventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 EventFrame:RegisterEvent("UNIT_AURA")
+EventFrame:RegisterEvent("ADDON_LOADED") -- Fired when saved variables are loaded
 
 -- Output functions
 local function playSporedSoundFile(name)
@@ -18,13 +32,35 @@ local function playSporedSoundFile(name)
 end
 
 local function c_print(message, audiofile)
-	if (c_output == "CHAT") then
+	if (spored_output == "CHAT") then
 		DEFAULT_CHAT_FRAME:AddMessage(text_color .. message .. "|r");
-	elseif (c_output == "SOUND") then
+	elseif (spored_output == "SOUND") then
 		DEFAULT_CHAT_FRAME:AddMessage(text_color .. message .. "|r");
 		playSporedSoundFile(audiofile);
 	else
-		SendChatMessage(message, c_output, nil, nil);
+		SendChatMessage(message, spored_output, nil, nil);
+	end
+end
+
+local function setOutput(rest)
+	if (rest == "SAY") then -- Speech to nearby players (/say).
+		spored_output = "SAY";
+--	else if (rest == "YELL") then -- Yell to not so nearby players (/yell).
+--		spored_output = "YELL";
+	elseif (rest == "PARTY") then -- Message to party members (/p)
+		spored_output = "PARTY";
+	elseif (rest == "RAID") then -- Message to raid members (/raid)
+		spored_output = "RAID";
+	elseif (rest == "RAID_WARNING") then -- Warning to raid members (/rw)
+		spored_output = "RAID_WARNING";
+	elseif (rest == "INSTANCE_CHAT") then -- Message to battleground instance group (/i)
+		spored_output = "INSTANCE_CHAT";
+	elseif (rest == "SOUND") then -- Play a sound file + print to chat
+		spored_output = "SOUND";
+	elseif (rest == "CHAT") then -- default
+		spored_output = "CHAT";
+	else
+		slashUsage();
 	end
 end
 
@@ -44,6 +80,12 @@ end
 
 -- Event Handler
 EventFrame:SetScript("OnEvent", function(self,event,...)
+
+	if (event == "ADDON_LOADED") then
+		if (spored_output_conf) then
+			setOutput(spored_output_conf);
+		end
+	end
 -- Filter out instances/sanctuary? (todo: more filters?)
 	if (enabled == false) then
 		-- Skip detection
@@ -154,44 +196,13 @@ EventFrame:SetScript("OnEvent", function(self,event,...)
 	end
 end)
 
-SLASH_SPORED1 = '/spored'
-
-local function slashUsage()
-	print("SPORED. Written by Sorny of Defias Brotherhood.");
-	print("Detects Sinister Spores, Glitter bomb, Skyterror and Aviana's Feather.");
-	print("Syntax:");
-	print("/spored output <channel>");
-	print("channel = SAY, PARTY, RAID, RAID_WARNING, INSTANCE_CHAT, SOUND (default), or CHAT.");
-	print("/spored enable <true or false>");
-	print("false means addon is disabled, true enabled.");
-end
-
 local function slashCommandHandler(msg, editbox)
 	
 	local command, rest = msg:match("^(%S*)%s*(.-)$");
 	 if (command == "output" and rest ~= "") then
-		if (rest == "SAY") then -- Speech to nearby players (/say).
-			c_output = "SAY";
-	--	else if (rest == "YELL") then -- Yell to not so nearby players (/yell).
-	--		c_output = "YELL";
-		elseif (rest == "PARTY") then -- Message to party members (/p)
-			c_output = "PARTY";
-		elseif (rest == "RAID") then -- Message to raid members (/raid)
-			c_output = "RAID";
-		elseif (rest == "RAID_WARNING") then -- Warning to raid members (/rw)
-			c_output = "RAID_WARNING";
-		elseif (rest == "INSTANCE_CHAT") then -- Message to battleground instance group (/i)
-			c_output = "INSTANCE_CHAT";
-		elseif (rest == "SOUND") then -- Play a sound file + print to chat
-			c_output = "SOUND";
-		elseif (rest == "CHAT") then -- default
-			c_output = "CHAT";
-		else
-			slashUsage();
-		end
-
-		print("SPORED output channel set to: " .. c_output);
-
+		setOutput(rest);
+		print("SPORED output channel set to: " .. spored_output);
+		spored_output_conf = spored_output;
 	 elseif (command == "enable" and rest ~= "") then
 		if (rest == "false") then
 			enabled = false;
